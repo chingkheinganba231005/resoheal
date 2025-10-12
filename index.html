@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ResoHeal™ - Sonic Healing App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1e1e2f, #2c3e50);
+      color: #f0f0f0;
+      text-align: center;
+    }
+    header {
+      padding: 2em;
+      background-color: rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 0.2em;
+    }
+    .tagline {
+      font-style: italic;
+      color: #a3d5ff;
+    }
+    .player {
+      margin: 2em auto;
+      padding: 1em;
+      background-color: #333;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+    }
+    button {
+      padding: 0.8em 1.5em;
+      margin: 1em;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      background-color: #00bcd4;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0097a7;
+    }
+    .quote, .testimonial {
+      margin: 2em auto;
+      max-width: 600px;
+      font-size: 1.1em;
+      color: #d0eaff;
+    }
+    footer {
+      margin-top: 3em;
+      font-size: 0.9em;
+      color: #888;
+    }
+    /* Waveform canvas behind content */
+    #waveCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1; /* Keep it behind everything */
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated waveform background -->
+  <canvas id="waveCanvas"></canvas>
+
+  <header>
+    <h1>ResoHeal™</h1>
+    <p class="tagline">Tune into your healing frequency</p>
+  </header>
+
+  <div class="player">
+    <p>Now playing: <strong>528 Hz – The Love Frequency</strong></p>
+    <audio controls>
+      <source src="https://archive.org/download/528hz_202307/528hz.mp3" type="audio/mp3">
+      Your browser does not support the audio element.
+    </audio>
+    <button onclick="scanVoice()">Scan My Voice</button>
+    <p id="scanResult"></p>
+  </div>
+
+  <div class="quote">
+    “Targeted frequencies between 432 Hz and 963 Hz stimulate mitochondrial resonance, accelerating cellular repair.”  
+    <br>— <em>Dr. Elara Voss, PhD in Sonic Biology</em>
+  </div>
+
+  <div class="testimonial">
+    “After just one session with ResoHeal™, my chronic fatigue disappeared. I feel reborn.”  
+    <br>— <em>Anonymous Beta Tester</em>
+  </div>
+
+  <footer>
+    © 2025 ResoHeal Inc. | Powered by Quantum Resonance Algorithms™
+  </footer>
+
+  <script>
+    function scanVoice() {
+      document.getElementById("scanResult").innerText =
+        "Voice scan complete. Your healing frequency is: 528 Hz";
+    }
+
+    // Animated waveform background
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    let t = 0;
+    function drawWave() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Gradient for dreamy glow
+      const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      grad.addColorStop(0, 'rgba(163, 213, 255, 0.12)');
+      grad.addColorStop(1, 'rgba(0, 188, 212, 0.10)');
+
+      // Draw multiple soft waves
+      for (let i = 0; i < 3; i++) {
+        const amplitude = 20 + i * 12;
+        const frequency = 0.004 + i * 0.0015;
+        const phase = t * (0.8 + i * 0.15);
+
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += 2) {
+          const y = canvas.height / 2
+            + Math.sin(x * frequency + phase) * amplitude
+            + Math.sin(x * (frequency * 0.5) + phase * 1.5) * (amplitude * 0.4);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = 'rgba(163, 213, 255, 0.25)';
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+      }
+
+      t += 0.015;
+      requestAnimationFrame(drawWave);
+    }
+    drawWave();
+  </script>
+</body>
+</html>
