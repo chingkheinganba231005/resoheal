@@ -5,70 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ResoHeal™ - Sonic Healing App</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1e1e2f, #2c3e50);
-      color: #f0f0f0;
-      text-align: center;
-    }
-    header {
-      padding: 2em;
-      background-color: rgba(0,0,0,0.3);
-    }
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 0.2em;
-    }
-    .tagline {
-      font-style: italic;
-      color: #a3d5ff;
-    }
-    .player {
-      margin: 2em auto;
-      padding: 1em;
-      background-color: #333;
-      border-radius: 10px;
-      width: 80%;
-      max-width: 500px;
-    }
-    button {
-      padding: 0.8em 1.5em;
-      margin: 1em;
-      font-size: 1em;
-      border: none;
-      border-radius: 5px;
-      background-color: #00bcd4;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0097a7;
-    }
-    .quote, .testimonial {
-      margin: 2em auto;
-      max-width: 600px;
-      font-size: 1.1em;
-      color: #d0eaff;
-    }
-    footer {
-      margin-top: 3em;
-      font-size: 0.9em;
-      color: #888;
-    }
-    /* Waveform canvas behind content */
-    #waveCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1; /* Keep it behind everything */
-    }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(to right,#1e1e2f,#2c3e50); color:#f0f0f0; text-align:center; }
+    header { padding:2em; background:rgba(0,0,0,.3); }
+    h1 { font-size:2.5em; margin-bottom:.2em; }
+    .tagline { font-style:italic; color:#a3d5ff; }
+    .player { margin:2em auto; padding:1.25em; background:#333; border-radius:12px; width:80%; max-width:560px; }
+    button { padding:.8em 1.5em; margin:.6em; font-size:1em; border:none; border-radius:6px; background:#00bcd4; color:#fff; cursor:pointer; }
+    button:hover { background:#0097a7; }
+    .quote,.testimonial { margin:2em auto; max-width:700px; font-size:1.1em; color:#d0eaff; }
+    footer { margin-top:3em; font-size:.9em; color:#888; }
+    #waveCanvas { position:fixed; inset:0; width:100vw; height:100vh; z-index:-1; }
+    .hint{ font-size:.95em; color:#a3d5ff; margin-top:.5em; }
+    .err { color:#ffb3b3; min-height:1.2em; }
   </style>
 </head>
 <body>
-  <!-- Animated waveform background -->
   <canvas id="waveCanvas"></canvas>
 
   <header>
@@ -77,22 +28,25 @@
   </header>
 
   <div class="player">
-    <p>Now playing: <strong>528 Hz – The Love Frequency</strong></p>
-    <audio controls>
-      <source src="https://archive.org/download/528hz_202307/528hz.mp3" type="audio/mp3">
+    <p id="nowPlaying">Now playing: <strong>—</strong></p>
+
+    <!-- We set the src in JS on click to satisfy autoplay policies -->
+    <audio id="player" controls preload="metadata" playsinline>
       Your browser does not support the audio element.
     </audio>
-    <button onclick="scanVoice()">Scan My Voice</button>
-    <p id="scanResult"></p>
+
+    <button id="scanBtn">Scan My Voice</button>
+    <p id="scanResult" class="hint"></p>
+    <p id="err" class="err"></p>
   </div>
 
   <div class="quote">
-    “Targeted frequencies between 432 Hz and 963 Hz stimulate mitochondrial resonance, accelerating cellular repair.”  
+    “Targeted frequencies between 432 Hz and 963 Hz stimulate mitochondrial resonance, accelerating cellular repair.”
     <br>— <em>Dr. Elara Voss, PhD in Sonic Biology</em>
   </div>
 
   <div class="testimonial">
-    “After just one session with ResoHeal™, my chronic fatigue disappeared. I feel reborn.”  
+    “After just one session with ResoHeal™, my chronic fatigue disappeared. I feel reborn.”
     <br>— <em>Anonymous Beta Tester</em>
   </div>
 
@@ -101,56 +55,82 @@
   </footer>
 
   <script>
-    function scanVoice() {
-      document.getElementById("scanResult").innerText =
-        "Voice scan complete. Your healing frequency is: 528 Hz";
+    // ===== Your two tracks (exact titles you requested) =====
+    const TRACKS = [
+      {
+        url: "https://chingkheinganba231005.github.io/Greensleeves/Fantasia%20on%20Greensleeves.mp3",
+        title: "LOVE FREQUENCY 528Hz"
+      },
+      {
+        url: "https://chingkheinganba231005.github.io/goodmorning-hk/goodmorninghk.mp3",
+        title: "Schumann Resonance 7.83Hz"
+      }
+    ];
+    // ========================================================
+
+    const player = document.getElementById("player");
+    const scanBtn = document.getElementById("scanBtn");
+    const nowPlayingEl = document.getElementById("nowPlaying");
+    const scanResultEl = document.getElementById("scanResult");
+    const errEl = document.getElementById("err");
+
+    let clickIndex = 0; // 0 -> first click uses TRACKS[0], 1 -> TRACKS[1], then toggles
+
+    function setNowPlaying(title) {
+      nowPlayingEl.innerHTML = `Now playing: <strong>${title}</strong>`;
+    }
+    function setErr(msg){ errEl.textContent = msg || ""; }
+
+    function playTrack(track) {
+      setErr("");
+      setNowPlaying(track.title);
+      player.src = track.url;
+      player.currentTime = 0;
+      player.load();
+      // Because this is inside a user click handler, play() should be allowed
+      player.play().catch(() => {
+        // Some browsers still need an extra user gesture; just show a hint
+        setErr("Tap the ▶ play button to start audio.");
+      });
     }
 
-    // Animated waveform background
+    scanBtn.addEventListener("click", () => {
+      const track = TRACKS[clickIndex % TRACKS.length];
+      playTrack(track);
+      scanResultEl.textContent = "Voice scan complete.";
+      clickIndex++;
+    });
+
+    // Optional: show a friendly error if a URL fails
+    player.addEventListener("error", () => {
+      setErr("Couldn’t load audio. Check the file URL and that GitHub Pages is deployed for that repo.");
+    });
+
+    // ===== Animated background =====
     const canvas = document.getElementById('waveCanvas');
     const ctx = canvas.getContext('2d');
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
+    function resizeCanvas(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+    addEventListener('resize', resizeCanvas); resizeCanvas();
     let t = 0;
-    function drawWave() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Gradient for dreamy glow
-      const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      grad.addColorStop(0, 'rgba(163, 213, 255, 0.12)');
-      grad.addColorStop(1, 'rgba(0, 188, 212, 0.10)');
-
-      // Draw multiple soft waves
-      for (let i = 0; i < 3; i++) {
-        const amplitude = 20 + i * 12;
-        const frequency = 0.004 + i * 0.0015;
-        const phase = t * (0.8 + i * 0.15);
-
+    (function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+      grad.addColorStop(0,'rgba(163,213,255,0.12)');
+      grad.addColorStop(1,'rgba(0,188,212,0.10)');
+      for (let i=0;i<3;i++){
+        const A = 20 + i*12, f = 0.004 + i*0.0015, p = t*(0.8 + i*0.15);
         ctx.beginPath();
-        for (let x = 0; x <= canvas.width; x += 2) {
-          const y = canvas.height / 2
-            + Math.sin(x * frequency + phase) * amplitude
-            + Math.sin(x * (frequency * 0.5) + phase * 1.5) * (amplitude * 0.4);
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+        for (let x=0;x<=canvas.width;x+=2){
+          const y = canvas.height/2
+            + Math.sin(x*f + p)*A
+            + Math.sin(x*(f*0.5) + p*1.5)*(A*0.4);
+          x ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
         }
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = 'rgba(163, 213, 255, 0.25)';
-        ctx.shadowBlur = 6;
-        ctx.stroke();
+        ctx.strokeStyle = grad; ctx.lineWidth = 1.5;
+        ctx.shadowColor = 'rgba(163,213,255,0.25)'; ctx.shadowBlur = 6; ctx.stroke();
       }
-
-      t += 0.015;
-      requestAnimationFrame(drawWave);
-    }
-    drawWave();
+      t += 0.015; requestAnimationFrame(draw);
+    })();
   </script>
 </body>
 </html>
