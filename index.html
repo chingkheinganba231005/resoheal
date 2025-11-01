@@ -55,18 +55,18 @@
   </footer>
 
   <script>
-    // ===== Your two tracks (exact titles you requested) =====
+    // ===== Your two tracks (only the 2nd URL changed) =====
     const TRACKS = [
       {
         url: "https://chingkheinganba231005.github.io/Greensleeves/Fantasia%20on%20Greensleeves.mp3",
         title: "LOVE FREQUENCY 528Hz"
       },
       {
-        url: "https://chingkheinganba231005.github.io/goodmorning-hk/goodmorninghk.mp3",
+        url: "https://chingkheinganba231005.github.io/good/good.mp3",
         title: "Schumann Resonance 7.83Hz"
       }
     ];
-    // ========================================================
+    // ======================================================
 
     const player = document.getElementById("player");
     const scanBtn = document.getElementById("scanBtn");
@@ -74,7 +74,7 @@
     const scanResultEl = document.getElementById("scanResult");
     const errEl = document.getElementById("err");
 
-    let clickIndex = 0; // 0 -> first click uses TRACKS[0], 1 -> TRACKS[1], then toggles
+    let clickIndex = 0; // 1st click -> TRACKS[0], 2nd -> TRACKS[1], then toggle
 
     function setNowPlaying(title) {
       nowPlayingEl.innerHTML = `Now playing: <strong>${title}</strong>`;
@@ -87,11 +87,7 @@
       player.src = track.url;
       player.currentTime = 0;
       player.load();
-      // Because this is inside a user click handler, play() should be allowed
-      player.play().catch(() => {
-        // Some browsers still need an extra user gesture; just show a hint
-        setErr("Tap the ▶ play button to start audio.");
-      });
+      player.play().catch(() => setErr("Tap the ▶ play button to start audio."));
     }
 
     scanBtn.addEventListener("click", () => {
@@ -101,7 +97,6 @@
       clickIndex++;
     });
 
-    // Optional: show a friendly error if a URL fails
     player.addEventListener("error", () => {
       setErr("Couldn’t load audio. Check the file URL and that GitHub Pages is deployed for that repo.");
     });
